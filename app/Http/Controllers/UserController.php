@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\SetRoleRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Roles;
@@ -44,6 +45,7 @@ class UserController extends Controller
         $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
         $user = User::create($validated);
+        $user->refresh();
         return response()->json(['message' => 'User created!', 'user' => $user], 200);
     }
 
@@ -96,6 +98,7 @@ class UserController extends Controller
         $user->delete();
         return response()->json(['message' => 'User deleted']);
     }
+
     public function register(CreateUserRequest $request)
     {
         $validated = $request->validated();
@@ -161,34 +164,14 @@ class UserController extends Controller
             ]
         ]);
     }
-    public function setAdmin(int $id)
+    public function setRole(int $id,SetRoleRequest $request)
     {
         $user = User::find($id);
         if (is_null($user)) {
             return response()->json(['error' => 'User not found'], 404);
         }
-        $user->role=Roles::Administrator->role();
+        $user->role=Roles::from($request->role);
         $user->save();
         return response()->json(['message' => 'User set admin role!', 'user' => $user], 200);
-    }
-    public function setModerator(int $id)
-    {
-        $user = User::find($id);
-        if (is_null($user)) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-        $user->role=Roles::Moderator->role();
-        $user->save();
-        return response()->json(['message' => 'User set moderator role!', 'user' => $user], 200);
-    }
-    public function setUser(int $id)
-    {
-        $user = User::find($id);
-        if (is_null($user)) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-        $user->role=Roles::User->role();
-        $user->save();
-        return response()->json(['message' => 'User set user role!', 'user' => $user], 200);
     }
 }

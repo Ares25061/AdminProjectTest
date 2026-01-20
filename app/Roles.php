@@ -2,18 +2,9 @@
 
 namespace App;
 
-enum Roles
+enum Roles : string
 {
-    case Administrator;
-    case User;
-    case Moderator;
-    public function role(): string
-    {
-        return match($this)
-        {
-            Roles::Administrator => 'administrator',
-            Roles::Moderator => 'moderator',
-            Roles::User => 'user',
-        };
-    }
+    case ADMIN = 'admin';
+    case USER = 'user';
+    case MODER = 'moder';
 }
