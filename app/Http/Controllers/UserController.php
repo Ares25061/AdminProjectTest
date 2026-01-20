@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\PaginateRequest;
 use App\Http\Requests\SetRoleRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
@@ -19,14 +20,13 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //todo: сделать пагинацию
-        $users = User::all();
-        if (is_null($users)) {
+        $users = User::paginate($request->per_page, page:$request->page);
+        if ($users->count() === 0) {
             return response()->json(['error' => 'Users not found'], 404);
         }
-        User::paginate(10);
+
         return response()->json(['users' => $users], 200);
     }
     /**

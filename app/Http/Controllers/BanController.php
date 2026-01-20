@@ -12,13 +12,13 @@ class BanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bans = Ban::all();
-        if (is_null($bans)) {
+        $bans = Ban::paginate($request->per_page, page:$request->page);
+        if ($bans->count() === 0) {
             return response()->json(['error' => 'Bans not found'], 404);
         }
-        Ban::paginate(10);
+
         return response()->json(['bans' => $bans], 200);
     }
 
