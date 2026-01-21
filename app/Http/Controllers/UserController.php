@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BanUserRequest;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\EditUserRequest;
 use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\SetRoleRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Ban;
 use App\Models\User;
 use App\Roles;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -191,12 +195,47 @@ class UserController extends Controller
         if (is_null($user)) {
             return response()->json(['error' => 'User not found'], 404);
         }
+        $this->authorize('set-role',$user);
         $user->role=Roles::from($request->role);
         $user->save();
         return response()->json([
             'status'=> 'success',
             'message' => 'User set role!',
             'user' => $user
+        ]);
+    }
+
+    public function ban(BanUserRequest $request)
+    {
+        $user = Auth::user();
+        if (is_null($user)) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        $this->authorize('ban',User::class);
+        $validated = $request->validated();
+        $ban = Ban::create($validated);
+        $ban->refresh();
+        return response()->json([
+            'status'=> 'success',
+            'message' => 'User banned',
+        ]);
+    }
+
+    public function unban(int $id)
+    {
+        $user = Auth::user();
+        if (is_null($user)) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        $this->authorize('unban',User::class);
+        $bannedUser = User::find($id);
+        if (is_null($bannedUser)) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+        $bannedUser->bans()->delete();
+        return response()->json([
+            'status'=> 'success',
+            'message' => 'User unbanned',
         ]);
     }
 }
