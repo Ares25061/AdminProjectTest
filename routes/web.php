@@ -18,11 +18,7 @@ Route::group(['prefix' => 'user'], function () {
     })->name('user.create');
     Route::get('/edit', function () {
         return view('updateUser');
-    })->name('user.edit')
-        ->middleware('auth');
-    Route::get('/update', [UserController::class, 'update'])
-        ->name('user.update')
-        ->middleware('auth');
+    })->name('user.edit');
 });
 
 Route::get('/user/profile', function () {

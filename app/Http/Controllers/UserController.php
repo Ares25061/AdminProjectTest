@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\EditUserRequest;
 use App\Http\Requests\LoginUserRequest;
-use App\Http\Requests\PaginateRequest;
 use App\Http\Requests\SetRoleRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Roles;
-use Couchbase\Role;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent;
 use Illuminate\Support\Facades\Hash;
@@ -27,16 +26,8 @@ class UserController extends Controller
             return response()->json(['error' => 'Users not found'], 404);
         }
 
-        return response()->json(['users' => $users], 200);
+        return response()->json(['status'=> 'success','users' => $users], 200);
     }
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('createUser');
-    }
-
     /**
      * Store a newly created resource in storage.
      */
@@ -46,7 +37,11 @@ class UserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         $user = User::create($validated);
         $user->refresh();
-        return response()->json(['message' => 'User created!', 'user' => $user], 200);
+        return response()->json([
+            'status'=> 'success',
+            'message' => 'User created!',
+            'user' => $user,
+        ]);
     }
 
     /**
@@ -58,15 +53,34 @@ class UserController extends Controller
         if (is_null($user)) {
             return response()->json(['error' => 'User not found'], 404);
         }
-        return response()->json(['user' => $user]);
+        return response()->json([
+            'status'=> 'success',
+            'user' => $user,
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $user)
+    public function edit(EditUserRequest $request)
     {
-        return view('updateUser', compact('user'));
+        $user = Auth::user();
+        if (is_null($user)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found'
+            ], 404);
+        }
+        $validated = $request->validated();
+        $user->update([
+            ...$validated,
+            'email_verified_at'=> !empty($validated['email']) ? null : $user->email_verified_at,
+        ]);
+        return response()->json([
+            'status'=> 'success',
+            'message' => 'User edited!',
+            'user' => $user,
+        ]);
     }
 
     /**
@@ -79,11 +93,16 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
         $validated = $request->validated();
-        if(!empty($validated['password'])){
-            $validated['password'] = Hash::make($validated['password']);
-        }
-        $user->update($validated);
-        return response()->json(['message' => 'User updated!', 'user' => $user], 200);
+        $user->update([
+            ...$validated,
+            'email_verified_at'=> !empty($validated['email']) ? null : $user->email_verified_at,
+            'password' => !empty($validated['password']) ? Hash::make($validated['password']) : $user->password
+        ]);
+        return response()->json([
+            'status'=> 'success',
+            'message' => 'User updated!',
+            'user' => $user,
+        ]);
     }
 
     /**
@@ -96,7 +115,10 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
         $user->delete();
-        return response()->json(['message' => 'User deleted']);
+        return response()->json([
+            'status'=> 'success',
+            'message' => 'User deleted',
+        ]);
     }
 
     public function register(CreateUserRequest $request)
@@ -114,7 +136,6 @@ class UserController extends Controller
                 'type' => 'bearer',
             ]
         ]);
-
     }
 
     public function login(LoginUserRequest $request)
@@ -172,6 +193,10 @@ class UserController extends Controller
         }
         $user->role=Roles::from($request->role);
         $user->save();
-        return response()->json(['message' => 'User set admin role!', 'user' => $user], 200);
+        return response()->json([
+            'status'=> 'success',
+            'message' => 'User set role!',
+            'user' => $user
+        ]);
     }
 }
