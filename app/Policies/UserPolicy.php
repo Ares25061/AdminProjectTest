@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Roles;
 
@@ -16,6 +17,7 @@ class UserPolicy
     }
     public function ban(User $user, User $model)
     {
+
         if ((($user->role === Roles::ADMIN || $user->role === Roles::MODER)&& $user->id !== $model->id) && ($model->role !== Roles::ADMIN || $model->role !== Roles::MODER)) {
             return true;
         }

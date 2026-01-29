@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\RolePermissions;
+use App\UserPermissions;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -22,7 +24,7 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
-        'role',
+        'role_id',
         'email_verified_at',
     ];
 
@@ -45,8 +47,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'role' => Roles::class,
+            'password' => 'hashed'
         ];
     }
 
@@ -72,5 +73,13 @@ class User extends Authenticatable implements JWTSubject
     public function bans()
     {
         return $this->hasMany(Ban::class);
+    }
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+    public function hasPermission(UserPermissions|RolePermissions $permission): bool
+    {
+        return $this->role->permissions->contains($permission);
     }
 }
