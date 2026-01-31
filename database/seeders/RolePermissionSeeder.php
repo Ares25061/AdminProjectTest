@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use App\Roles;
 use App\UserPermissions;
 use App\RolePermissions;
@@ -31,8 +32,8 @@ class RolePermissionSeeder extends Seeder
         $moderRole = Role::create(['name' => Roles::MODER->value]);
         $moderPermissions = Permission::whereIn('name',UserPermissions::moderPermissions())->get();
         $moderRole->permissions()->sync($moderPermissions);
-        dump($moderRole->load('permissions'));
         Role::create(['name' => Roles::USER->value]);
-
+        User::create(['name'=> 'admin', 'email'=> 'admin@gmail.com','password'=> bcrypt('12345678'), 'role_id'=>$adminRole->id]);
+        User::create(['name'=> 'moder', 'email'=> 'moder@gmail.com','password'=> bcrypt('12345678'), 'role_id'=>$moderRole->id]);
     }
 }

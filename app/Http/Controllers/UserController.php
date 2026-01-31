@@ -14,6 +14,7 @@ use App\Roles;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
@@ -25,6 +26,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('view-list',User::class);
         $users = User::paginate($request->per_page, page:$request->page);
         if ($users->count() === 0) {
             return response()->json(['error' => 'Users not found'], 404);
@@ -39,6 +41,8 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
+        $roleId = DB::table('roles')->where('name', 'user')->value('id');
+        $validated['role_id'] = $roleId;
         $user = User::create($validated);
         $user->refresh();
         return response()->json([
@@ -53,13 +57,14 @@ class UserController extends Controller
      */
     public function show(int $id)
     {
-        $user = User::with('bans')->find($id);
-        if (is_null($user)) {
+        $model = User::with('bans')->find($id);
+        $this->authorize('view',$model);
+        if (is_null($model)) {
             return response()->json(['error' => 'User not found'], 404);
         }
         return response()->json([
             'status'=> 'success',
-            'user' => $user,
+            'user' => $model,
         ]);
     }
 
@@ -93,6 +98,7 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, int $id)
     {
         $user = User::find($id);
+        $this->authorize('update',$user);
         if (is_null($user)) {
             return response()->json(['error' => 'User not found'], 404);
         }
@@ -115,6 +121,7 @@ class UserController extends Controller
     public function destroy(int $id)
     {
         $user = User::find($id);
+        $this->authorize('delete',$user);
         if (is_null($user)) {
             return response()->json(['error' => 'User not found'], 404);
         }
@@ -129,6 +136,8 @@ class UserController extends Controller
     {
         $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
+        $roleId = DB::table('roles')->where('name', 'user')->value('id');
+        $validated['role_id'] = $roleId;
         $user = User::create($validated);
         $token = Auth::login($user);
         return response()->json([
@@ -196,7 +205,7 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
         $this->authorize('set-role',$user);
-        $user->role=Roles::from($request->role);
+        $user->role_id = DB::table('roles')->where('name', $request->role)->value('id');
         $user->save();
         return response()->json([
             'status'=> 'success',
@@ -211,7 +220,7 @@ class UserController extends Controller
         if (is_null($user)) {
             return response()->json(['error' => 'User not found'], 404);
         }
-        $this->authorize('ban',User::class);
+        $this->authorize('ban',$user);
         $validated = $request->validated();
         $ban = Ban::create($validated);
         $ban->refresh();
@@ -227,7 +236,7 @@ class UserController extends Controller
         if (is_null($user)) {
             return response()->json(['error' => 'User not found'], 404);
         }
-        $this->authorize('unban',User::class);
+        $this->authorize('unban',$user);
         $bannedUser = User::find($id);
         if (is_null($bannedUser)) {
             return response()->json(['error' => 'User not found'], 404);

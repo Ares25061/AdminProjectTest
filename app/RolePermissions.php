@@ -7,6 +7,7 @@ enum RolePermissions : string
     case CREATE = 'roles.create';
     case UPDATE = 'roles.update';
     case DELETE = 'roles.delete';
+    case SET = 'roles.set';
     public static function values(): array
     {
         $values = [];
