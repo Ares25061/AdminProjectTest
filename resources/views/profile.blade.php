@@ -26,6 +26,41 @@
     </div>
 </div>
 
+<!-- Модальное окно для загрузки аватара -->
+<div id="avatarModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Загрузка аватара</h3>
+
+            <div class="mb-4">
+                <div class="flex justify-center mb-4">
+                    <img id="avatarPreview" src="" alt="Предпросмотр" class="hidden w-32 h-32 rounded-full object-cover border-2 border-gray-300">
+                </div>
+
+                <form id="avatarUploadForm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Выберите изображение</label>
+                        <input type="file" id="avatarInput" name="avatar" accept="image/*"
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <p class="mt-1 text-sm text-gray-500">PNG, JPG, GIF до 2MB</p>
+                    </div>
+
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" onclick="closeAvatarModal()"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            Отмена
+                        </button>
+                        <button type="submit" id="uploadAvatarBtn"
+                                class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Загрузить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // Проверяем авторизацию
     function checkAuth() {
@@ -45,7 +80,6 @@
 
         try {
             const date = new Date(dateString);
-            // Добавляем 3 часа для корректировки часового пояса
             date.setHours(date.getHours() + 3);
 
             return date.toLocaleDateString('ru-RU', {
@@ -59,67 +93,6 @@
             console.error('Error formatting date:', e);
             return 'Ошибка даты';
         }
-    }
-
-    // Форматирование даты без времени
-    function formatDateOnly(dateString) {
-        if (!dateString) return 'Не указано';
-
-        try {
-            const date = new Date(dateString);
-            date.setHours(date.getHours() + 3);
-
-            return date.toLocaleDateString('ru-RU', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        } catch (e) {
-            console.error('Error formatting date:', e);
-            return 'Ошибка даты';
-        }
-    }
-
-    // Форматирование даты в относительное время с учетом часового пояса
-    function formatRelativeTime(dateString) {
-        if (!dateString) return null;
-
-        try {
-            const date = new Date(dateString);
-            date.setHours(date.getHours() + 3); // Корректировка часового пояса
-
-            const now = new Date();
-            const diffMs = date - now;
-            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-
-            if (diffDays > 0) {
-                return `через ${diffDays} ${getDaysWord(diffDays)}`;
-            } else if (diffDays < 0) {
-                return `${Math.abs(diffDays)} ${getDaysWord(Math.abs(diffDays))} назад`;
-            } else if (diffHours > 0) {
-                return `через ${diffHours} ${getHoursWord(diffHours)}`;
-            } else if (diffHours < 0) {
-                return `${Math.abs(diffHours)} ${getHoursWord(Math.abs(diffHours))} назад`;
-            } else {
-                return 'сегодня';
-            }
-        } catch (e) {
-            console.error('Error formatting relative time:', e);
-            return null;
-        }
-    }
-
-    function getDaysWord(days) {
-        if (days % 10 === 1 && days % 100 !== 11) return 'день';
-        if (days % 10 >= 2 && days % 10 <= 4 && (days % 100 < 10 || days % 100 >= 20)) return 'дня';
-        return 'дней';
-    }
-
-    function getHoursWord(hours) {
-        if (hours % 10 === 1 && hours % 100 !== 11) return 'час';
-        if (hours % 10 >= 2 && hours % 10 <= 4 && (hours % 100 < 10 || hours % 100 >= 20)) return 'часа';
-        return 'часов';
     }
 
     // Получение информации о роли
@@ -205,7 +178,7 @@
         }
     }
 
-    // Проверка статуса бана с учетом часового пояса
+    // Проверка статуса бана
     function getBanStatus(bans) {
         if (!bans || !Array.isArray(bans) || bans.length === 0) {
             return {
@@ -218,35 +191,26 @@
                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                `,
-                reason: null,
-                expirationDate: null,
-                isPermanent: false,
-                activeBan: null
+                `
             };
         }
 
-        // Находим активные баны с учетом часового пояса
         const now = new Date();
-        now.setHours(now.getHours() + 3); // Корректировка часового пояса
+        now.setHours(now.getHours() + 3);
 
         const activeBan = bans.find(ban => {
-            // Если expiration null - перманентный бан
             if (ban.expiration === null) return true;
 
             try {
-                // Если expiration в будущем - временный бан еще активен
                 const expirationDate = new Date(ban.expiration);
-                expirationDate.setHours(expirationDate.getHours() + 3); // Корректировка часового пояса
+                expirationDate.setHours(expirationDate.getHours() + 3);
                 return expirationDate > now;
             } catch (e) {
-                console.error('Error parsing ban expiration date:', e);
                 return false;
             }
         });
 
         if (!activeBan) {
-            // Все баны истекли
             return {
                 isBanned: false,
                 text: 'Активен (был забанен ранее)',
@@ -257,39 +221,13 @@
                     <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                `,
-                reason: null,
-                expirationDate: null,
-                isPermanent: false,
-                activeBan: null
+                `
             };
-        }
-
-        const isPermanent = activeBan.expiration === null;
-        let expirationText = '';
-        let relativeTime = '';
-
-        if (isPermanent) {
-            expirationText = 'Перманентный бан';
-        } else {
-            try {
-                const expirationDate = new Date(activeBan.expiration);
-                expirationDate.setHours(expirationDate.getHours() + 3); // Корректировка часового пояса
-                expirationText = `Бан до: ${expirationDate.toLocaleDateString('ru-RU')} ${expirationDate.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'})}`;
-
-                relativeTime = formatRelativeTime(activeBan.expiration);
-                if (relativeTime && relativeTime.startsWith('через')) {
-                    expirationText += ` (${relativeTime})`;
-                }
-            } catch (e) {
-                console.error('Error formatting ban expiration:', e);
-                expirationText = 'Ошибка формата даты';
-            }
         }
 
         return {
             isBanned: true,
-            text: isPermanent ? 'Забанен (перманентно)' : 'Забанен (временно)',
+            text: activeBan.expiration === null ? 'Забанен (перманентно)' : 'Забанен (временно)',
             color: 'red',
             bgColor: 'red-50',
             borderColor: 'red-200',
@@ -299,11 +237,156 @@
                 </svg>
             `,
             reason: activeBan.reason,
-            expirationDate: activeBan.expiration,
-            isPermanent: isPermanent,
-            expirationText: expirationText,
             activeBan: activeBan
         };
+    }
+
+    // Получение URL аватара
+    function getAvatarUrl(user) {
+        if (user.avatar) {
+            const timestamp = new Date().getTime();
+            return `/storage/${user.avatar}?t=${timestamp}`;
+        }
+        return null;
+    }
+
+    // Открытие модального окна для загрузки аватара
+    function openAvatarModal() {
+        const modal = document.getElementById('avatarModal');
+        modal.classList.remove('hidden');
+        document.getElementById('avatarInput').value = '';
+        document.getElementById('avatarPreview').classList.add('hidden');
+        document.getElementById('avatarPreview').src = '';
+    }
+
+    // Закрытие модального окна
+    function closeAvatarModal() {
+        const modal = document.getElementById('avatarModal');
+        modal.classList.add('hidden');
+    }
+
+    // Загрузка аватара
+    async function uploadAvatar() {
+        const token = localStorage.getItem('auth_token');
+        const fileInput = document.getElementById('avatarInput');
+
+        if (!fileInput.files.length) {
+            alert('Пожалуйста, выберите файл');
+            return;
+        }
+
+        const file = fileInput.files[0];
+
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Файл слишком большой. Максимальный размер: 2MB');
+            return;
+        }
+
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            alert('Пожалуйста, выберите изображение в формате JPG, PNG, GIF или WebP');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        try {
+            const uploadBtn = document.getElementById('uploadAvatarBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Загрузка...';
+
+            const response = await fetch('/api/user/avatar/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                const user = JSON.parse(localStorage.getItem('user'));
+                user.avatar = data.path;
+                localStorage.setItem('user', JSON.stringify(user));
+
+                loadProfile();
+                closeAvatarModal();
+                alert('Аватар успешно загружен!');
+            } else {
+                alert('Ошибка при загрузке аватара: ' + (data.message || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            alert('Ошибка при загрузке аватара');
+        } finally {
+            const uploadBtn = document.getElementById('uploadAvatarBtn');
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Загрузить';
+        }
+    }
+
+    // Удаление аватара
+    async function deleteAvatar() {
+        if (!confirm('Вы уверены, что хотите удалить аватар?')) {
+            return;
+        }
+
+        const token = localStorage.getItem('auth_token');
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        try {
+            const response = await fetch('/api/user/avatar/destroy', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                user.avatar = null;
+                localStorage.setItem('user', JSON.stringify(user));
+
+                loadProfile();
+                alert('Аватар успешно удален!');
+            } else {
+                alert('Ошибка при удалении аватара: ' + (data.message || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error('Error deleting avatar:', error);
+            alert('Ошибка при удалении аватара');
+        }
+    }
+
+    // Предпросмотр аватара перед загрузкой
+    function setupAvatarPreview() {
+        const fileInput = document.getElementById('avatarInput');
+        const preview = document.getElementById('avatarPreview');
+
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+
+                reader.addEventListener('load', function() {
+                    preview.src = this.result;
+                    preview.classList.remove('hidden');
+                });
+
+                reader.readAsDataURL(file);
+            } else {
+                preview.classList.add('hidden');
+                preview.src = '';
+            }
+        });
     }
 
     // Загружаем данные профиля
@@ -317,7 +400,6 @@
         }
 
         try {
-            // Получаем ID пользователя из localStorage
             let userId;
             try {
                 const userData = JSON.parse(storedUser);
@@ -328,7 +410,6 @@
                 return;
             }
 
-            // Пытаемся получить данные пользователя через API
             const response = await fetch('/api/user/' + userId, {
                 method: 'GET',
                 headers: {
@@ -340,16 +421,13 @@
 
             if (response.ok) {
                 const data = await response.json();
-                // Сохраняем обновленные данные
                 localStorage.setItem('user', JSON.stringify(data.user));
                 displayProfile(data.user);
             } else if (response.status === 401) {
-                // Токен недействителен
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('user');
                 window.location.href = '/user/login';
             } else if (response.status === 403) {
-                // Пользователь забанен
                 const errorData = await response.json();
                 showBanError(errorData.message || 'Ваш аккаунт забанен');
             } else {
@@ -357,7 +435,6 @@
             }
         } catch (error) {
             console.error('Error loading profile:', error);
-            // Используем данные из localStorage, если API недоступен
             if (storedUser) {
                 try {
                     const userData = JSON.parse(storedUser);
@@ -378,19 +455,12 @@
         const profileContent = document.getElementById('profileContent');
         profileContent.classList.remove('hidden');
 
-        // Получаем статус верификации
         const verification = getVerificationStatus(user.email_verified_at);
-
-        // Получаем статус бана
         const banStatus = getBanStatus(user.bans);
-
-        // Получаем информацию о роли
         const roleInfo = getRoleInfo(user.role || 'user');
-
-        // Определяем инициалы для аватара
         const initials = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+        const avatarUrl = getAvatarUrl(user);
 
-        // Если пользователь забанен, показываем предупреждение
         let banWarning = '';
         if (banStatus.isBanned) {
             banWarning = `
@@ -402,10 +472,54 @@
                         <div>
                             <h3 class="font-bold">Ваш аккаунт забанен!</h3>
                             <p class="mt-1">${banStatus.activeBan.reason || 'Причина не указана'}</p>
-                            ${banStatus.expirationText ? `<p class="mt-1">${banStatus.expirationText}</p>` : ''}
                         </div>
                     </div>
                 </div>
+            `;
+        }
+
+        // Создаем безопасный HTML для аватара
+        let avatarHtml = '';
+        if (avatarUrl) {
+            avatarHtml = `
+               <div class="relative">
+                <!-- Аватар или заглушка -->
+                <div class="w-20 h-20 rounded-full overflow-hidden bg-white">
+                    <img src="${avatarUrl.replace(/"/g, '&quot;')}"
+                         alt="Аватар"
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\\'w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-blue-500\\'>${initials}</div>';">
+                </div>
+
+                <!-- Кнопки управления — поверх аватара -->
+                ${user.avatar ? `
+                <button onclick="deleteAvatar()"
+                        class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition shadow-md z-30">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+                ` : ''}
+
+                <button onclick="openAvatarModal()"
+                        class="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-blue-600 transition shadow-md z-30">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </button>
+            </div>
+            `;
+        } else {
+            avatarHtml = `
+                <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-2xl font-bold ${banStatus.isBanned ? 'text-red-500' : roleInfo.color === 'purple' ? 'text-purple-500' : roleInfo.color === 'blue' ? 'text-blue-500' : 'text-blue-500'} shadow-lg">
+                    ${initials}
+                </div>
+                <button onclick="openAvatarModal()"
+                        class="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-blue-600 transition shadow-md">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                </button>
             `;
         }
 
@@ -415,8 +529,8 @@
                 <div class="${banStatus.isBanned ? 'bg-gradient-to-r from-red-500 to-red-700' : roleInfo.color === 'purple' ? 'bg-gradient-to-r from-purple-500 to-pink-600' : roleInfo.color === 'blue' ? 'bg-gradient-to-r from-blue-500 to-cyan-600' : 'bg-gradient-to-r from-blue-500 to-purple-600'} p-6 text-white">
                     <div class="flex flex-col md:flex-row md:items-center justify-between">
                         <div class="flex items-center space-x-4">
-                            <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center text-2xl font-bold ${banStatus.isBanned ? 'text-red-500' : roleInfo.color === 'purple' ? 'text-purple-500' : roleInfo.color === 'blue' ? 'text-blue-500' : 'text-blue-500'} shadow-lg">
-                                ${initials}
+                            <div class="relative">
+                                ${avatarHtml}
                             </div>
                             <div>
                                 <h1 class="text-2xl font-bold">${user.name || 'Пользователь'}</h1>
@@ -432,12 +546,14 @@
                         <div class="mt-4 md:mt-0 flex items-center gap-3">
                             ${banStatus.isBanned ? `
                                 <div class="bg-white text-red-600 px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
-                                    ${banStatus.icon}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                    </svg>
                                     <span>Забанен</span>
                                 </div>
                             ` : ''}
                             <button onclick="logout()"
-                                    class="bg-white ${banStatus.isBanned ? 'text-red-500 hover:bg-red-50' : roleInfo.color === 'purple' ? 'text-purple-500 hover:bg-purple-50' : roleInfo.color === 'blue' ? 'text-blue-500 hover:bg-blue-50' : 'text-blue-500 hover:bg-blue-50'} px-4 py-2 rounded-lg transition font-semibold">
+                                    class="bg-white ${banStatus.isBanned ? 'text-red-500 hover:bg-red-50' : roleInfo.color === 'purple' ? 'text-purple-500 hover:bg-purple-50' : roleInfo.color === 'blue' ? 'text-blue-500 hover:bg-blue-50' : 'text-blue-500 hover:bg-blue-50'} px-4 py-2 rounded-lg transition font-semibold shadow">
                                 Выйти
                             </button>
                         </div>
@@ -451,17 +567,17 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Левая колонка -->
                         <div class="space-y-4">
-                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition">
                                 <p class="text-sm text-gray-500 mb-1">Имя</p>
                                 <p class="text-lg font-semibold text-gray-800">${user.name || 'Не указано'}</p>
                             </div>
 
-                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition">
                                 <p class="text-sm text-gray-500 mb-1">Email</p>
                                 <p class="text-lg font-semibold text-gray-800">${user.email || 'Не указан'}</p>
                             </div>
 
-                            <div class="border border-${verification.borderColor} bg-${verification.bgColor} rounded-lg p-4 hover:shadow-md transition">
+                            <div class="border border-${verification.borderColor} bg-${verification.bgColor} rounded-lg p-4 hover:shadow-sm transition">
                                 <p class="text-sm text-gray-500 mb-1">Статус email</p>
                                 <div class="flex items-center gap-2">
                                     ${verification.icon}
@@ -478,12 +594,44 @@
                                 </div>
                                 ` : ''}
                             </div>
+
+                            <!-- Блок управления аватаром -->
+                            <div class="border border-blue-200 bg-blue-50 rounded-lg p-4 hover:shadow-sm transition">
+                                <p class="text-sm text-blue-500 mb-3 font-medium">Управление аватаром</p>
+                               <div class="flex flex-wrap gap-3">
+                                <button onclick="openAvatarModal()"
+                                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 text-sm font-medium flex items-center gap-2 whitespace-nowrap">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                    </svg>
+                                    Загрузить
+                                </button>
+                                ${user.avatar ? `
+                                <button onclick="deleteAvatar()"
+                                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 text-sm font-medium flex items-center gap-2 whitespace-nowrap relative z-10">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                    Удалить
+                                </button>
+                                ` : ''}
+                            </div>
+                                ${user.avatar ? `
+                                <div class="mt-3">
+                                    <p class="text-xs text-gray-600 truncate">Текущий аватар: ${user.avatar}</p>
+                                </div>
+                                ` : `
+                                <div class="mt-3">
+                                    <p class="text-sm text-gray-600">Аватар не установлен</p>
+                                </div>
+                                `}
+                            </div>
                         </div>
 
                         <!-- Правая колонка -->
                         <div class="space-y-4">
                             <!-- Роль пользователя -->
-                            <div class="border border-${roleInfo.color}-200 bg-${roleInfo.bgColor} rounded-lg p-4 hover:shadow-md transition">
+                            <div class="border border-${roleInfo.color}-200 bg-${roleInfo.bgColor} rounded-lg p-4 hover:shadow-sm transition">
                                 <p class="text-sm text-gray-500 mb-1">Роль</p>
                                 <div class="flex items-center gap-2">
                                     ${roleInfo.icon}
@@ -491,7 +639,7 @@
                                         ${roleInfo.text}
                                     </p>
                                 </div>
-                                ${user.role === 'admin' ? `
+                                ${user.role === 'administrator' ? `
                                 <div class="mt-2">
                                     <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
                                         Полные права доступа
@@ -507,7 +655,7 @@
                             </div>
 
                             <!-- Статус аккаунта (бан/активен) -->
-                            <div class="border border-${banStatus.borderColor} bg-${banStatus.bgColor} rounded-lg p-4 hover:shadow-md transition">
+                            <div class="border border-${banStatus.borderColor} bg-${banStatus.bgColor} rounded-lg p-4 hover:shadow-sm transition">
                                 <p class="text-sm text-gray-500 mb-1">Статус аккаунта</p>
                                 <div class="flex items-center gap-2">
                                     ${banStatus.icon}
@@ -515,33 +663,16 @@
                                         ${banStatus.text}
                                     </p>
                                 </div>
-                                ${banStatus.isBanned ? `
-                                    <div class="mt-3 space-y-2">
-                                        ${banStatus.reason ? `
-                                        <div>
-                                            <p class="text-sm text-gray-500 mb-1">Причина бана:</p>
-                                            <p class="text-sm font-medium text-${banStatus.color}-700">${banStatus.reason}</p>
-                                        </div>
-                                        ` : ''}
-                                        ${banStatus.expirationText ? `
-                                        <div>
-                                            <p class="text-sm text-gray-500 mb-1">Срок бана:</p>
-                                            <p class="text-sm font-medium text-${banStatus.color}-700">${banStatus.expirationText}</p>
-                                        </div>
-                                        ` : ''}
-                                        ${banStatus.isPermanent ? `
-                                        <div class="mt-2">
-                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
-                                                Перманентный бан
-                                            </span>
-                                        </div>
-                                        ` : ''}
+                                ${banStatus.isBanned && banStatus.reason ? `
+                                    <div class="mt-3">
+                                        <p class="text-sm text-gray-500 mb-1">Причина бана:</p>
+                                        <p class="text-sm font-medium text-${banStatus.color}-700">${banStatus.reason}</p>
                                     </div>
                                 ` : ''}
                             </div>
 
                             ${user.created_at ? `
-                            <div class="border border-blue-200 bg-blue-50 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="border border-blue-200 bg-blue-50 rounded-lg p-4 hover:shadow-sm transition">
                                 <p class="text-sm text-blue-500 mb-1">Дата регистрации</p>
                                 <div class="flex items-center gap-2">
                                     <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -555,7 +686,7 @@
                             ` : ''}
 
                             ${user.updated_at ? `
-                            <div class="border border-green-200 bg-green-50 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="border border-green-200 bg-green-50 rounded-lg p-4 hover:shadow-sm transition">
                                 <p class="text-sm text-green-500 mb-1">Последнее обновление</p>
                                 <div class="flex items-center gap-2">
                                     <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -594,7 +725,7 @@
 
                             ${user.role === 'administrator' || user.role === 'moderator' ? `
                             <a href="/admin/dashboard"
-                               class="px-6 py-2 ${user.role === 'admin' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-lg transition duration-200 font-medium flex items-center gap-2">
+                               class="px-6 py-2 ${user.role === 'administrator' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-blue-500 hover:bg-blue-600'} text-white rounded-lg transition duration-200 font-medium flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -652,81 +783,15 @@
                             <span class="text-green-500">✓</span>
                             <span class="text-sm">Аватар установлен</span>
                         </div>
-                        ` : ''}
+                        ` : `
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-400">○</span>
+                            <span class="text-sm">Аватар не установлен</span>
+                        </div>
+                        `}
                     </div>
                 </div>
             </div>
-
-            <!-- История банов (если есть) -->
-            ${user.bans && user.bans.length > 0 ? `
-            <div class="mt-6 bg-white rounded-xl shadow-lg overflow-hidden">
-                <div class="p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4">История банов</h2>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Причина</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата бана</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Истекает</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                ${user.bans.map(ban => {
-            let expirationDate = null;
-            let isActive = false;
-            let statusText = '';
-            let statusColor = '';
-
-            if (ban.expiration === null) {
-                isActive = true;
-                statusText = 'Перманентный';
-                statusColor = 'bg-red-100 text-red-800';
-            } else {
-                try {
-                    expirationDate = new Date(ban.expiration);
-                    expirationDate.setHours(expirationDate.getHours() + 3); // Корректировка часового пояса
-                    const now = new Date();
-                    now.setHours(now.getHours() + 3);
-
-                    if (expirationDate > now) {
-                        isActive = true;
-                        statusText = 'Активен';
-                        statusColor = 'bg-red-100 text-red-800';
-                    } else {
-                        isActive = false;
-                        statusText = 'Истёк';
-                        statusColor = 'bg-green-100 text-green-800';
-                    }
-                } catch (e) {
-                    console.error('Error parsing ban expiration:', e);
-                    statusText = 'Ошибка';
-                    statusColor = 'bg-gray-100 text-gray-800';
-                }
-            }
-
-            return `
-                                        <tr class="${isActive ? 'bg-red-50' : ''}">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${ban.reason || 'Не указана'}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(ban.created_at)}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                ${ban.expiration === null ? 'Перманентно' : (expirationDate ? formatDate(ban.expiration) : 'Ошибка формата')}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}">
-                                                    ${statusText}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    `;
-        }).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            ` : ''}
         `;
     }
 
@@ -759,7 +824,6 @@
         `;
     }
 
-    // Функция для отправки письма верификации
     async function sendVerificationEmail() {
         const token = localStorage.getItem('auth_token');
         const user = JSON.parse(localStorage.getItem('user'));
@@ -771,24 +835,6 @@
         } catch (error) {
             console.error('Error sending verification email:', error);
             alert('Ошибка при отправке письма');
-        }
-    }
-
-    // Функция для обжалования бана
-    async function appealBan() {
-        const token = localStorage.getItem('auth_token');
-        const user = JSON.parse(localStorage.getItem('user'));
-
-        if (!token || !user) return;
-
-        try {
-            const reason = prompt('Укажите причину обжалования бана:');
-            if (!reason) return;
-
-            alert('Заявка на обжалование бана отправлена администраторам!');
-        } catch (error) {
-            console.error('Error appealing ban:', error);
-            alert('Ошибка при отправке заявки');
         }
     }
 
@@ -807,15 +853,46 @@
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            // Всегда очищаем localStorage и перенаправляем
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
             window.location.href = '/user/login';
         }
     }
 
-    // Загружаем профиль при загрузке страницы
-    window.addEventListener('load', loadProfile);
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        // Настройка формы загрузки аватара
+        const avatarForm = document.getElementById('avatarUploadForm');
+        if (avatarForm) {
+            avatarForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                uploadAvatar();
+            });
+        }
+
+        // Настройка предпросмотра аватара
+        setupAvatarPreview();
+
+        // Закрытие модального окна при клике вне его
+        const modal = document.getElementById('avatarModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    closeAvatarModal();
+                }
+            });
+        }
+
+        // Закрытие модального окна по клавише ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeAvatarModal();
+            }
+        });
+
+        // Загружаем профиль при загрузке страницы
+        loadProfile();
+    });
 </script>
 </body>
 </html>
