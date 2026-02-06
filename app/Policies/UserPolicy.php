@@ -11,13 +11,6 @@ use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
-    /**
-     * Create a new policy instance.
-     */
-    public function __construct()
-    {
-        //
-    }
     public function view(User $user, User $model)
     {
         if ($user->hasPermission(UserPermissions::VIEW) || $user->id === $model->id) {
@@ -38,7 +31,7 @@ class UserPolicy
         if (!$user->hasPermission(UserPermissions::UPDATE)) {
             return Response::deny("You don't have permission to update users");
         }
-        if ($user->role === Roles::MODER && $model->role !== Roles::USER) {
+        if ($user->role->name === Roles::MODER->value && $model->role->name !== Roles::USER->value) {
             return Response::deny("You cant update another moderators and administrators");
         }
         return Response::allow();
@@ -51,7 +44,7 @@ class UserPolicy
         if ($user->id === $model->id) {
             return Response::deny("You cant delete yourself");
         }
-        if ($user->role === Roles::MODER && ($model->role === Roles::ADMIN || $model->role === Roles::MODER)) {
+        if ($user->role->name === Roles::MODER->value && ($model->role->name === Roles::ADMIN->value || $model->role->name === Roles::MODER->value)) {
             return Response::deny("You cant delete another moderators and administrators");
         }
         return Response::allow();
@@ -62,13 +55,17 @@ class UserPolicy
         {
             return Response::deny("You don't have permission to ban users");
         }
-        if ($model->role === Roles::MODER || $model->role === Roles::ADMIN)
+        if ($model->role->name === Roles::MODER->value || $model->role->name === Roles::ADMIN->value)
         {
             return Response::deny("You cant ban moderators and administrators");
         }
         if ($user->id === $model->id)
         {
             return Response::deny("You cant ban yourself");
+        }
+        if($model->bans->isNotEmpty())
+        {
+            return Response::deny("User has already been banned");
         }
         return Response::allow();
     }
@@ -82,11 +79,15 @@ class UserPolicy
         {
             return Response::deny("You cant unban yourself");
         }
+        if($model->bans->isEmpty())
+        {
+            return Response::deny("User doesn't have any bans");
+        }
         return Response::allow();
     }
     public function setRole(User $user, User $model)
     {
-        if ($user->hasPermission(RolePermissions::SET))
+        if (!$user->hasPermission(RolePermissions::SET))
         {
             return Response::deny("You don't have permission to set role users");
         }

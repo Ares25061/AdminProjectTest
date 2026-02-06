@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class EditUserRequest extends FormRequest
+class DestroyAvatarRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -15,11 +14,10 @@ class EditUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|string|max:255',
-            'email' => [
-                'sometimes',
-                'email',
-                Rule::unique('users', 'email')->ignore($this->route('user'))
+            'user_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
             ],
         ];
     }

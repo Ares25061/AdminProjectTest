@@ -41,41 +41,31 @@
                 <form id="editForm" class="space-y-6">
                     <!-- Имя -->
                     <div>
-                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                            Имя
-                        </label>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Имя</label>
                         <input type="text" id="name" name="name"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                               placeholder="Введите новое имя (оставьте пустым, чтобы не менять)">
-                        <p class="text-sm text-gray-500 mt-1">Оставьте поле пустым, если не хотите менять имя</p>
+                               placeholder="Введите новое имя">
+                        <p class="text-sm text-gray-500 mt-1">Оставьте пустым, если не хотите менять</p>
                     </div>
 
                     <!-- Email -->
                     <div>
-                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                            Email
-                        </label>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                         <input type="email" id="email" name="email"
                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                               placeholder="Введите новый email (оставьте пустым, чтобы не менять)">
-                        <p class="text-sm text-gray-500 mt-1">
-                            Оставьте поле пустым, если не хотите менять email. При изменении email потребуется повторная верификация.
-                        </p>
+                               placeholder="Введите новый email">
+                        <p class="text-sm text-gray-500 mt-1">При изменении потребуется повторная верификация.</p>
                     </div>
 
-                    <!-- Информация -->
+                    <!-- Информация (желтый блок) -->
                     <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <div class="flex items-start">
-                            <svg class="w-5 h-5 text-yellow-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.212 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-                            </svg>
+                            <svg class="w-5 h-5 text-yellow-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.212 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
                             <div>
                                 <h3 class="font-medium text-yellow-800">Информация</h3>
                                 <ul class="mt-2 text-sm text-yellow-700 space-y-1">
                                     <li>• Можно изменить только имя или только email</li>
-                                    <li>• Можно оставить оба поля пустыми (ничего не изменится)</li>
-                                    <li>• При изменении email сбросится статус верификации</li>
-                                    <li>• Email должен быть уникальным и в правильном формате</li>
+                                    <li>• При изменении email статус подтверждения сбросится</li>
                                 </ul>
                             </div>
                         </div>
@@ -83,17 +73,12 @@
 
                     <!-- Кнопки -->
                     <div class="flex gap-4 pt-4">
-                        <button type="submit"
+                        <button type="submit" id="saveBtn"
                                 class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 font-medium flex items-center gap-2 flex-1 justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                            </svg>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Сохранить изменения
                         </button>
-                        <a href="/user/profile"
-                           class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-medium text-center">
-                            Отмена
-                        </a>
+                        <a href="/user/profile" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-200 font-medium text-center">Отмена</a>
                     </div>
                 </form>
             </div>
@@ -102,30 +87,12 @@
         <!-- Текущая информация -->
         <div class="mt-6 bg-white rounded-xl shadow-lg overflow-hidden">
             <div class="p-6">
-                <h2 class="text-lg font-bold text-gray-800 mb-4">Текущая информация</h2>
+                <h2 class="text-lg font-bold text-gray-800 mb-4 text-center">Текущая информация</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-sm text-gray-500">Текущее имя</p>
-                        <p id="currentName" class="font-semibold text-gray-800"></p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-sm text-gray-500">Текущий email</p>
-                        <p id="currentEmail" class="font-semibold text-gray-800"></p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-sm text-gray-500">Статус верификации</p>
-                        <p id="currentVerification" class="font-semibold"></p>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="text-sm text-gray-500">Дата регистрации</p>
-                        <p id="currentCreatedAt" class="font-semibold text-gray-800"></p>
-                    </div>
-                </div>
-
-                <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-sm text-blue-700">
-                        <span class="font-medium">Подсказка:</span> Введите данные только в те поля, которые хотите изменить.
-                    </p>
+                    <div class="bg-gray-50 p-4 rounded-lg"><p class="text-sm text-gray-500">Имя</p><p id="currentName" class="font-semibold text-gray-800"></p></div>
+                    <div class="bg-gray-50 p-4 rounded-lg"><p class="text-sm text-gray-500">Email</p><p id="currentEmail" class="font-semibold text-gray-800"></p></div>
+                    <div class="bg-gray-50 p-4 rounded-lg"><p class="text-sm text-gray-500">Статус</p><p id="currentVerification" class="font-semibold"></p></div>
+                    <div class="bg-gray-50 p-4 rounded-lg"><p class="text-sm text-gray-500">Создан</p><p id="currentCreatedAt" class="font-semibold text-gray-800"></p></div>
                 </div>
             </div>
         </div>
@@ -137,142 +104,95 @@
 </div>
 
 <script>
-    // Проверяем авторизацию
-    function checkAuth() {
-        const token = localStorage.getItem('auth_token');
-        const user = localStorage.getItem('user');
-        return token && user ? true : false;
+    /**
+     * УМНЫЙ СЕРВИС ЗАПРОСОВ
+     */
+    async function apiService(url, options = {}) {
+        let token = localStorage.getItem('auth_token');
+        const headers = {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+            ...options.headers
+        };
+
+        let response = await fetch(url, { ...options, headers });
+
+        if (response.status === 401) {
+            console.warn('Токен истек, обновляю...');
+            const refreshRes = await fetch('/api/refresh', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+            });
+
+            if (refreshRes.ok) {
+                const data = await refreshRes.json();
+                localStorage.setItem('auth_token', data.authorization.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                headers['Authorization'] = `Bearer ${data.authorization.token}`;
+                return await fetch(url, { ...options, headers });
+            } else {
+                localStorage.clear();
+                window.location.href = '/user/login?error=expired';
+                return response;
+            }
+        }
+        return response;
     }
 
-    // Если пользователь не авторизован, перенаправляем на логин
-    if (!checkAuth()) {
-        window.location.href = '/user/login';
-    }
+    const getLoggedUser = () => JSON.parse(localStorage.getItem('user') || '{}');
 
-    // Форматирование даты
     function formatDate(dateString) {
         if (!dateString) return 'Не указано';
-
         try {
             const date = new Date(dateString);
-            date.setHours(date.getHours() + 3); // Корректировка часового пояса
-
-            return date.toLocaleDateString('ru-RU', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        } catch (e) {
-            console.error('Error formatting date:', e);
-            return 'Ошибка даты';
-        }
+            date.setHours(date.getHours() + 3);
+            return date.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch (e) { return 'Ошибка даты'; }
     }
 
-    // Показать сообщение
     function showMessage(type, message) {
         const errorDiv = document.getElementById('errorMessage');
         const successDiv = document.getElementById('successMessage');
-
         if (type === 'error') {
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-            successDiv.classList.add('hidden');
+            errorDiv.textContent = message; errorDiv.classList.remove('hidden'); successDiv.classList.add('hidden');
         } else {
-            successDiv.textContent = message;
-            successDiv.classList.remove('hidden');
-            errorDiv.classList.add('hidden');
+            successDiv.textContent = message; successDiv.classList.remove('hidden'); errorDiv.classList.add('hidden');
         }
     }
 
-    // Загружаем данные пользователя
     async function loadUserData() {
-        const token = localStorage.getItem('auth_token');
-        const storedUser = localStorage.getItem('user');
+        if (!localStorage.getItem('auth_token')) { window.location.href = '/user/login'; return; }
 
-        if (!token) {
-            showError();
-            return;
-        }
-
+        const user = getLoggedUser();
         try {
-            // Получаем ID пользователя из localStorage
-            let userId;
-            try {
-                const userData = JSON.parse(storedUser);
-                userId = userData.id;
-            } catch (e) {
-                console.error('Error parsing user data:', e);
-                showError();
-                return;
-            }
-
-            // Получаем данные пользователя через API
-            const response = await fetch('/api/user/' + userId, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-                }
-            });
-
+            const response = await apiService(`/api/user/${user.id}`);
             if (response.ok) {
                 const data = await response.json();
-                // Сохраняем обновленные данные
                 localStorage.setItem('user', JSON.stringify(data.user));
                 displayEditForm(data.user);
-            } else if (response.status === 401) {
-                // Токен недействителен
-                localStorage.removeItem('auth_token');
-                localStorage.removeItem('user');
-                window.location.href = '/user/login';
             } else {
                 showError();
             }
         } catch (error) {
-            console.error('Error loading user data:', error);
-            // Используем данные из localStorage
-            if (storedUser) {
-                try {
-                    const userData = JSON.parse(storedUser);
-                    displayEditForm(userData);
-                } catch (e) {
-                    showError();
-                }
-            } else {
-                showError();
-            }
+            if (user.id) displayEditForm(user); else showError();
         }
     }
 
-    // Отображаем форму редактирования
     function displayEditForm(user) {
         document.getElementById('loading').classList.add('hidden');
-        document.getElementById('errorContent').classList.add('hidden');
+        document.getElementById('editFormContainer').classList.remove('hidden');
 
-        const editFormContainer = document.getElementById('editFormContainer');
-        editFormContainer.classList.remove('hidden');
-
-        // Заполняем placeholder текущими данными
-        document.getElementById('name').placeholder = `Текущее имя: ${user.name || ''}`;
-        document.getElementById('email').placeholder = `Текущий email: ${user.email || ''}`;
-
-        // Заполняем блок с текущей информацией
-        document.getElementById('currentName').textContent = user.name || 'Не указано';
-        document.getElementById('currentEmail').textContent = user.email || 'Не указан';
+        document.getElementById('name').placeholder = `Текущее: ${user.name || ''}`;
+        document.getElementById('email').placeholder = `Текущий: ${user.email || ''}`;
+        document.getElementById('currentName').textContent = user.name || '—';
+        document.getElementById('currentEmail').textContent = user.email || '—';
         document.getElementById('currentCreatedAt').textContent = formatDate(user.created_at);
 
-        // Статус верификации
-        const verificationElement = document.getElementById('currentVerification');
-        if (user.email_verified_at) {
-            verificationElement.textContent = 'Подтверждён';
-            verificationElement.className = 'font-semibold text-green-600';
-        } else {
-            verificationElement.textContent = 'Не подтверждён';
-            verificationElement.className = 'font-semibold text-red-600';
-        }
+        const ver = document.getElementById('currentVerification');
+        ver.textContent = user.email_verified_at ? 'Подтверждён' : 'Не подтверждён';
+        ver.className = user.email_verified_at ? 'font-semibold text-green-600' : 'font-semibold text-red-600';
     }
 
     function showError() {
@@ -280,148 +200,66 @@
         document.getElementById('errorContent').classList.remove('hidden');
     }
 
-    // Обработка отправки формы
+    // ОТПРАВКА ФОРМЫ
     document.getElementById('editForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
-        const token = localStorage.getItem('auth_token');
-        const storedUser = localStorage.getItem('user');
-
-        if (!token || !storedUser) {
-            showMessage('error', 'Ошибка авторизации');
-            return;
-        }
-
-        // Собираем данные из формы
         const formData = {};
         const nameInput = document.getElementById('name').value.trim();
         const emailInput = document.getElementById('email').value.trim().toLowerCase();
 
-        // Добавляем только заполненные поля
-        if (nameInput) {
-            formData.name = nameInput;
-        }
-        if (emailInput) {
-            formData.email = emailInput;
-        }
+        if (nameInput) formData.name = nameInput;
+        if (emailInput) formData.email = emailInput;
 
-        // Проверяем, что хотя бы одно поле заполнено
         if (Object.keys(formData).length === 0) {
-            showMessage('error', 'Заполните хотя бы одно поле для изменения');
+            showMessage('error', 'Заполните хотя бы одно поле');
             return;
         }
 
-        // Валидация на клиенте
-        if (formData.name && formData.name.length < 2) {
-            showMessage('error', 'Имя должно содержать минимум 2 символа');
-            return;
-        }
-
-        if (formData.email && !formData.email.includes('@')) {
-            showMessage('error', 'Введите корректный email');
-            return;
-        }
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true; btn.textContent = 'Сохранение...';
 
         try {
-            // Используем API маршрут /api/user/edit (без ID пользователя в URL)
-            const response = await fetch('/api/user/edit', {
+            const response = await apiService('/api/user/edit', {
                 method: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                // Обновляем данные в localStorage
+                const oldUser = getLoggedUser();
                 localStorage.setItem('user', JSON.stringify(data.user));
 
-                // Проверяем, изменился ли email
-                const oldUser = JSON.parse(storedUser);
-                const emailChanged = formData.email && oldUser.email !== formData.email;
+                const emailChanged = formData.email && oldUser.email !== data.user.email;
+                showMessage('success', emailChanged ? 'Профиль обновлен! Требуется повторная верификация email.' : 'Изменения сохранены!');
 
-                let successMessage = 'Профиль успешно обновлен!';
-                if (emailChanged) {
-                    successMessage += ' Требуется повторное подтверждение email.';
-                }
-
-                showMessage('success', successMessage);
-
-                // Обновляем текущую информацию
-                document.getElementById('currentName').textContent = data.user.name || 'Не указано';
-                document.getElementById('currentEmail').textContent = data.user.email || 'Не указан';
-
-                // Обновляем placeholder
-                document.getElementById('name').placeholder = `Текущее имя: ${data.user.name || ''}`;
-                document.getElementById('email').placeholder = `Текущий email: ${data.user.email || ''}`;
-
-                // Очищаем поля формы
+                // Сбрасываем форму и обновляем UI
                 document.getElementById('name').value = '';
                 document.getElementById('email').value = '';
+                displayEditForm(data.user);
 
-                // Обновляем статус верификации
-                const verificationElement = document.getElementById('currentVerification');
-                if (data.user.email_verified_at) {
-                    verificationElement.textContent = 'Подтверждён';
-                    verificationElement.className = 'font-semibold text-green-600';
-                } else {
-                    verificationElement.textContent = 'Не подтверждён';
-                    verificationElement.className = 'font-semibold text-red-600';
-                }
+                if (emailChanged) confirm('Email изменён. Отправить письмо для подтверждения?') && sendVerificationEmail();
 
-                // Если email изменился, предлагаем отправить письмо для верификации
-                if (emailChanged && !data.user.email_verified_at) {
-                    setTimeout(() => {
-                        if (confirm('Email изменён. Хотите отправить письмо для подтверждения?')) {
-                            sendVerificationEmail();
-                        }
-                    }, 1000);
-                }
-
-                // Автоматическое скрытие успешного сообщения через 3 секунды
-                setTimeout(() => {
-                    document.getElementById('successMessage').classList.add('hidden');
-                }, 3000);
-
+                setTimeout(() => document.getElementById('successMessage').classList.add('hidden'), 4000);
             } else {
-                if (data.errors) {
-                    const errorMessages = Object.values(data.errors).flat().join(', ');
-                    showMessage('error', errorMessages);
-                } else if (data.message) {
-                    showMessage('error', data.message);
-                } else if (data.error) {
-                    showMessage('error', data.error);
-                } else {
-                    showMessage('error', 'Ошибка обновления профиля');
-                }
+                const msg = data.errors ? Object.values(data.errors).flat().join(', ') : (data.message || 'Ошибка');
+                showMessage('error', msg);
             }
         } catch (error) {
-            console.error('Error updating profile:', error);
-            showMessage('error', 'Ошибка соединения с сервером');
+            showMessage('error', 'Ошибка соединения');
+        } finally {
+            btn.disabled = false; btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Сохранить изменения`;
         }
     });
 
-    // Функция для отправки письма верификации
     async function sendVerificationEmail() {
-        const token = localStorage.getItem('auth_token');
-        const user = JSON.parse(localStorage.getItem('user'));
-
-        if (!token || !user) return;
-
-        try {
-            alert('Письмо для верификации отправлено на ' + user.email);
-        } catch (error) {
-            console.error('Error sending verification email:', error);
-            alert('Ошибка при отправке письма');
-        }
+        const user = getLoggedUser();
+        alert('Письмо отправлено на ' + user.email);
+        // Здесь можно вызвать ваш API для отправки письма
     }
 
-    // Загружаем данные при загрузке страницы
     window.addEventListener('load', loadUserData);
 </script>
 </body>

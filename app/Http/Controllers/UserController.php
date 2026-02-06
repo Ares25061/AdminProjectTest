@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -28,8 +29,8 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $this->authorize('view-list',User::class);
-        $users = User::paginate($request->per_page, page:$request->page);
-        if ($users->count() === 0) {
+        $users = User::with(['role', 'bans'])->paginate($request->per_page ?? 10, ['*'], 'page', $request->page ?? 1);
+        if ($users->isEmpty()) {
             return response()->json(['error' => 'Users not found'], 404);
         }
 
@@ -126,6 +127,9 @@ class UserController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
         $this->authorize('delete',$user);
+        if(!is_null($user->avatar) && Storage::exists($user->avatar) ) {
+            Storage::delete($user->avatar);
+        }
         $user->delete();
         return response()->json([
             'status'=> 'success',
@@ -217,14 +221,13 @@ class UserController extends Controller
 
     public function ban(BanUserRequest $request)
     {
-        $user = Auth::user();
-        if (is_null($user)) {
+        $model = User::find($request->user_id);
+        if (is_null($model)) {
             return response()->json(['error' => 'User not found'], 404);
         }
-        $this->authorize('ban',$user);
+        $this->authorize('ban',$model);
         $validated = $request->validated();
-        $ban = Ban::create($validated);
-        $ban->refresh();
+        Ban::create($validated);
         return response()->json([
             'status'=> 'success',
             'message' => 'User banned',
@@ -233,15 +236,11 @@ class UserController extends Controller
 
     public function unban(int $id)
     {
-        $user = Auth::user();
-        if (is_null($user)) {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-        $this->authorize('unban',$user);
         $bannedUser = User::find($id);
         if (is_null($bannedUser)) {
             return response()->json(['error' => 'User not found'], 404);
         }
+        $this->authorize('unban',$bannedUser);
         $bannedUser->bans()->delete();
         return response()->json([
             'status'=> 'success',
