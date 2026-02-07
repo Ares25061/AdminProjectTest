@@ -28,6 +28,9 @@ class UserPolicy
     }
     public function update(User $user, User $model)
     {
+        if($user->id === $model->id){
+            return Response::allow();
+        }
         if (!$user->hasPermission(UserPermissions::UPDATE)) {
             return Response::deny("You don't have permission to update users");
         }

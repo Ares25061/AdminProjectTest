@@ -22,7 +22,7 @@ class UploadAvatarRequest extends FormRequest
                 'dimensions:min_width=100,min_height=100,max_width=2000,max_height=2000',
             ],
             'user_id' => [
-                'nullable',
+                'sometimes',
                 'integer',
                 'exists:users,id',
             ],
